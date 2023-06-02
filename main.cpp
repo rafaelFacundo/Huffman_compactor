@@ -29,7 +29,12 @@ class Heap {
         occurenceNode *heap;
         int lastIndex;
     public:
-        Heap();
+        void printHeap() {
+            for (int i = 0; i <= this->lastIndex; ++i) {
+                cout << this->heap[i].character << '-' << this->heap[i].occurrence << ' '; 
+            }
+            cout << '\n';
+        }
 
         void fixRemotion() {
             int fatherPostion = 0;
@@ -37,20 +42,20 @@ class Heap {
             int sonTwo = 2 * fatherPostion + 2;
             int smallInd = fatherPostion;
             while (true) {
-                if (this->heap[smallInd].occurrence > this->heap[sonOne].occurrence) {
+                if (this->heap[smallInd].occurrence > this->heap[sonOne].occurrence && sonOne <= this->lastIndex) {
                     smallInd = sonOne;
+                    
                 }
-
-                if (this->heap[smallInd].occurrence > this->heap[sonTwo].occurrence) {
+                if (this->heap[smallInd].occurrence > this->heap[sonTwo].occurrence && sonTwo <= this->lastIndex) {
                     smallInd = sonTwo;
                 }
-
                 if (smallInd != fatherPostion) {
                     occurenceNode temp = this->heap[smallInd];
                     this->heap[smallInd] = this->heap[fatherPostion];
                     this->heap[fatherPostion] = temp;
                     fatherPostion = smallInd;
-                    smallInd = fatherPostion;
+                    sonOne = 2 * fatherPostion + 1;
+                    sonTwo = 2 * fatherPostion + 2;   
                 }else {
                     break;
                 }
@@ -61,7 +66,7 @@ class Heap {
             occurenceNode temp = this->heap[0];
             this->heap[0] = this->heap[lastIndex];
             this->fixRemotion();
-            --lastIndex;
+            --this->lastIndex;
             return temp;
         }
 
@@ -84,6 +89,7 @@ class Heap {
                     occurenceNode newNode = occurenceNode{char(i-occurrenceVector), *(i)};
                     heap[indexToInsertNewNode] = newNode;
                     this->fixHeapInsertion(heap, indexToInsertNewNode);
+                    this->lastIndex = indexToInsertNewNode;
                     ++indexToInsertNewNode;
                 }
             }
@@ -131,7 +137,42 @@ int main()
     }
 
     cout << "Now i'm going to create the heap..\n";
+
+
+    Heap occurrenceHeap = Heap();
+
+    occurrenceHeap.createHeap(occurenceVector, N_numberOfLeafs);
+
+    occurrenceHeap.printHeap();
+
+    cout << "Remove the minimum: " << occurrenceHeap.removeMinimun().character << '\n';
+
+    occurrenceHeap.printHeap();
+
+    cout << "Remove the minimum: " << occurrenceHeap.removeMinimun().character << '\n';
+
+    occurrenceHeap.printHeap();
+
+    
+    cout << "Remove the minimum: " << occurrenceHeap.removeMinimun().character << '\n';
+
+    occurrenceHeap.printHeap();
+
+    
+    cout << "Remove the minimum: " << occurrenceHeap.removeMinimun().character << '\n';
+
+    occurrenceHeap.printHeap();
+
+
+
+
+
+
     /*occurenceNode* heap = createHeap(occurenceVector, N_numberOfLeafs);
+
+    
+
+
 
     cout << "I'm going to print the heap now...\n";
     for (int i = 0; i < N_numberOfLeafs; ++i) {
