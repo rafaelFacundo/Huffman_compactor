@@ -2,32 +2,40 @@
 #include <iostream>
 using namespace std;
 
-struct occurenceNode {
-    char character;
+struct treeNode {
     int occurrence;
+    int treeIndex;
 };
 
-struct treeNode {
-    char character;
-    int left;
-    int right;
+struct internalNodeTree{
+    int leftIndex;
+    int rightIndex;
 };
+
+
+union occurrenceNode {
+    char character;
+    treeNode occurrenceStruct;
+    internalNodeTree internalNode;
+};
+
+
 
 
 //===================================================================
-
+//HEAP
 
 class Heap {
     private:
-        occurenceNode *heap;
+        occurrenceNode *heap;
         int lastIndex;
     public:
 
-        Heap(occurenceNode *Heap) : heap{Heap} {}
+        Heap(occurrenceNode *Heap) : heap{Heap} {}
 
         void printHeap() {
             for (int i = 0; i <= this->lastIndex; ++i) {
-                cout << this->heap[i].character << '-' << this->heap[i].occurrence << ' '; 
+                cout << this->heap[i].character << '-' << this->heap[i].occurrenceStruct.occurrence << ' '; 
             }
             cout << '\n';
         }
@@ -38,15 +46,15 @@ class Heap {
             int sonTwo = 2 * fatherPostion + 2;
             int smallInd = fatherPostion;
             while (true) {
-                if (this->heap[smallInd].occurrence > this->heap[sonOne].occurrence && sonOne <= this->lastIndex) {
+                if (this->heap[smallInd].occurrenceStruct.occurrence > this->heap[sonOne].occurrenceStruct.occurrence && sonOne <= this->lastIndex) {
                     smallInd = sonOne;
                     
                 }
-                if (this->heap[smallInd].occurrence > this->heap[sonTwo].occurrence && sonTwo <= this->lastIndex) {
+                if (this->heap[smallInd].occurrenceStruct.occurrence > this->heap[sonTwo].occurrenceStruct.occurrence && sonTwo <= this->lastIndex) {
                     smallInd = sonTwo;
                 }
                 if (smallInd != fatherPostion) {
-                    occurenceNode temp = this->heap[smallInd];
+                    occurrenceNode temp = this->heap[smallInd];
                     this->heap[smallInd] = this->heap[fatherPostion];
                     this->heap[fatherPostion] = temp;
                     fatherPostion = smallInd;
@@ -55,11 +63,11 @@ class Heap {
                 }else {
                     break;
                 }
-            }
+            };
         }
 
-        occurenceNode removeMinimun() {
-            occurenceNode temp = this->heap[0];
+        occurrenceNode removeMinimun() {
+            occurrenceNode temp = this->heap[0];
             this->heap[0] = this->heap[lastIndex];
             this->fixRemotion();
             --this->lastIndex;
@@ -68,8 +76,8 @@ class Heap {
 
         void fixHeapInsertion(int positionImLooking) {
             int fatherPostion = (positionImLooking-1)/2;
-            while (fatherPostion != 0 || this->heap[fatherPostion].occurrence > this->heap[positionImLooking].occurrence) {
-                occurenceNode temp = this->heap[fatherPostion];
+            while (fatherPostion != 0 || this->heap[fatherPostion].occurrenceStruct.occurrence > this->heap[positionImLooking].occurrenceStruct.occurrence) {
+                occurrenceNode temp = this->heap[fatherPostion];
                 this->heap[fatherPostion] = this->heap[positionImLooking];
                 this->heap[positionImLooking] = temp;
                 positionImLooking = fatherPostion;
@@ -77,8 +85,10 @@ class Heap {
             }
         }
 
-        void insertAnode(char character, int occurrence) {
-            occurenceNode newNode = occurenceNode{character, occurrence};
+        void insertAnode(int indexTree, int occurrence) {
+            occurrenceNode newNode; /* = occurrenceNode{character, occurrence}; */
+            newNode.occurrenceStruct.occurrence = occurrence;
+            newNode.occurrenceStruct.treeIndex = indexTree;
             this->heap[this->lastIndex] = newNode;
             this->fixHeapInsertion(this->lastIndex);
             ++this->lastIndex;
@@ -93,9 +103,33 @@ class Heap {
             
         }
 
+        int getLastIndex() {
+            return this->lastIndex;
+        }
+
 };
 
 //===================================================================
+//TREE
+
+class HuffmanTree {
+    private:
+        occurrenceNode *tree;
+        int insertIndex = 0;
+    public:
+        HuffmanTree(occurrenceNode *Tree) : tree{Tree} {}
+
+        int insertAnode(occurrenceNode newNode) {
+            this->tree[this->insertIndex] = newNode;
+            int indexToReturn = this->insertIndex;
+            ++this->insertIndex;
+            return indexToReturn;
+        }
+
+};
+
+//===================================================================
+
 
 int main()
 {
@@ -123,6 +157,12 @@ int main()
     }
 
     cout << "runing throught the occurence vector \n";
+    cout << "and I'm going to create the heap at the same time\n";
+
+    cout << "Now i'm going to create the heap..\n";
+
+    
+
     for (int *i = occurenceVector; i != (occurenceVector + 256); ++i)
     {
         if (*(i) > 0)
@@ -134,14 +174,22 @@ int main()
         }
     }
 
-    cout << "Now i'm going to create the heap..\n";
-
-    occurenceNode *heap = new occurenceNode[N_numberOfLeafs];
+    occurrenceNode *heap = new occurrenceNode[N_numberOfLeafs];
+    occurrenceNode *treePointer = new occurrenceNode[2*N_numberOfLeafs-1];
 
     Heap occurrenceHeap = Heap(heap);
+    HuffmanTree tree = HuffmanTree(treePointer);
 
-    occurrenceHeap.populateHeap(occurenceVector);
+    
+    /* occurrenceHeap.populateHeap(occurenceVector);
 
+    while(occurrenceHeap.getLastIndex() > 0) {
+        occurrenceNode nodeOne = occurrenceHeap.removeMinimun();
+        occurrenceNode nodeTwo = occurrenceHeap.removeMinimun();
+
+
+    }
+ */
     occurrenceHeap.printHeap();
 
     cout << "Remove the minimum: " << occurrenceHeap.removeMinimun().character << '\n';
@@ -167,7 +215,7 @@ int main()
 
 
 
-    /*occurenceNode* heap = populateHeap(occurenceVector, N_numberOfLeafs);
+    /*occurrenceNode* heap = populateHeap(occurenceVector, N_numberOfLeafs);
 
     
 
