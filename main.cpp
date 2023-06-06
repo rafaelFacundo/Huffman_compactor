@@ -7,28 +7,24 @@ struct occurenceNode {
     int occurrence;
 };
 
+struct treeNode {
+    char character;
+    int left;
+    int right;
+};
 
 
-/*occurenceNode *createHeap(int occurrenceVector[], int numberOfCharacters) {
-    occurenceNode *heap = new occurenceNode[numberOfCharacters];
-    int indexToInsertNewNode = 0;
-    for (int *i = (occurrenceVector); i != (occurrenceVector + 256); ++i) {
-        if(*(i) > 0) {
-            occurenceNode newNode = occurenceNode{char(i-occurrenceVector), *(i)};
-            heap[indexToInsertNewNode] = newNode;
-            fixHeapInsertion(heap, indexToInsertNewNode);
-            ++indexToInsertNewNode;
-        }
-    }
-    return heap;
-}
-*/
+//===================================================================
+
 
 class Heap {
     private:
         occurenceNode *heap;
         int lastIndex;
     public:
+
+        Heap(occurenceNode *Heap) : heap{Heap} {}
+
         void printHeap() {
             for (int i = 0; i <= this->lastIndex; ++i) {
                 cout << this->heap[i].character << '-' << this->heap[i].occurrence << ' '; 
@@ -70,56 +66,36 @@ class Heap {
             return temp;
         }
 
-        void fixHeapInsertion(occurenceNode *heap, int positionImLooking) {
+        void fixHeapInsertion(int positionImLooking) {
             int fatherPostion = (positionImLooking-1)/2;
-            while (fatherPostion != 0 || heap[fatherPostion].occurrence > heap[positionImLooking].occurrence) {
-                occurenceNode temp = heap[fatherPostion];
-                heap[fatherPostion] = heap[positionImLooking];
-                heap[positionImLooking] = temp;
+            while (fatherPostion != 0 || this->heap[fatherPostion].occurrence > this->heap[positionImLooking].occurrence) {
+                occurenceNode temp = this->heap[fatherPostion];
+                this->heap[fatherPostion] = this->heap[positionImLooking];
+                this->heap[positionImLooking] = temp;
                 positionImLooking = fatherPostion;
                 fatherPostion = (positionImLooking-1)/2;
             }
         }
 
-        void createHeap(int occurrenceVector[], int numberOfCharacters) {
-            occurenceNode *heap = new occurenceNode[numberOfCharacters];
-            int indexToInsertNewNode = 0;
+        void insertAnode(char character, int occurrence) {
+            occurenceNode newNode = occurenceNode{character, occurrence};
+            this->heap[this->lastIndex] = newNode;
+            this->fixHeapInsertion(this->lastIndex);
+            ++this->lastIndex;
+        }
+
+        void populateHeap(int occurrenceVector[]) {
             for (int *i = (occurrenceVector); i != (occurrenceVector + 256); ++i) {
                 if(*(i) > 0) {
-                    occurenceNode newNode = occurenceNode{char(i-occurrenceVector), *(i)};
-                    heap[indexToInsertNewNode] = newNode;
-                    this->fixHeapInsertion(heap, indexToInsertNewNode);
-                    this->lastIndex = indexToInsertNewNode;
-                    ++indexToInsertNewNode;
+                    this->insertAnode(char(i-occurrenceVector), *(i));
                 }
             }
-            this->heap = heap;
+            
         }
 
 };
 
-void fixRemotion(occurenceNode *heap, int len) {
-    heap[0] = heap[len-1];
-    int positionImLooking = 0;
-    int sonOne = 2 * positionImLooking + 1;
-    int sonTwo = 2 * positionImLooking + 2;
-    int indexSmallest = positionImLooking;
-    bool contin = true;
-    while(contin) {
-        if ( (sonOne < len) && (heap[positionImLooking].occurrence > heap[sonOne].occurrence)) {
-            indexSmallest = sonOne;
-        }
-        if ( (sonTwo < len) && (heap[positionImLooking].occurrence > heap[sonTwo].occurrence)) {
-            indexSmallest = sonOne;
-        }
-
-        if (indexSmallest != positionImLooking) {
-            occurenceNode temp = heap[indexSmallest];
-            heap[indexSmallest] = heap[positionImLooking];
-            heap[positionImLooking] = temp;;
-        }
-    }
-}
+//===================================================================
 
 int main()
 {
@@ -160,10 +136,11 @@ int main()
 
     cout << "Now i'm going to create the heap..\n";
 
+    occurenceNode *heap = new occurenceNode[N_numberOfLeafs];
 
-    Heap occurrenceHeap = Heap();
+    Heap occurrenceHeap = Heap(heap);
 
-    occurrenceHeap.createHeap(occurenceVector, N_numberOfLeafs);
+    occurrenceHeap.populateHeap(occurenceVector);
 
     occurrenceHeap.printHeap();
 
@@ -190,7 +167,7 @@ int main()
 
 
 
-    /*occurenceNode* heap = createHeap(occurenceVector, N_numberOfLeafs);
+    /*occurenceNode* heap = populateHeap(occurenceVector, N_numberOfLeafs);
 
     
 
