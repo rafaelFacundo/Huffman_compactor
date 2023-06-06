@@ -32,6 +32,28 @@ occurenceNode *createHeap(int occurrenceVector[], int numberOfCharacters) {
     return heap;
 }
 
+void fixRemotion(occurenceNode *heap, int len) {
+    heap[0] = heap[len-1];
+    int positionImLooking = 0;
+    int sonOne = 2 * positionImLooking + 1;
+    int sonTwo = 2 * positionImLooking + 2;
+    int indexSmallest = positionImLooking;
+    bool contin = true;
+    while(contin) {
+        if ( (sonOne < len) && (heap[positionImLooking].occurrence > heap[sonOne].occurrence)) {
+            indexSmallest = sonOne;
+        }
+        if ( (sonTwo < len) && (heap[positionImLooking].occurrence > heap[sonTwo].occurrence)) {
+            indexSmallest = sonOne;
+        }
+
+        if (indexSmallest != positionImLooking) {
+            occurenceNode temp = heap[indexSmallest];
+            heap[indexSmallest] = heap[positionImLooking];
+            heap[positionImLooking] = temp;;
+        }
+    }
+}
 
 int main()
 {
