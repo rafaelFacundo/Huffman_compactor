@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <string>
 using namespace std;
 
 struct treeNode {
@@ -120,6 +121,17 @@ class HuffmanTree {
             return indexToReturn;
         }
 
+        void printCodes(int index, string codigo = "") {
+            if (index >= 0 && index <= 4) {
+                cout << this->tree[index].character << ": " << codigo << '\n';
+            }else {
+                string newC = codigo + "0";
+                printCodes(this->tree[index].internalNode.leftIndex, newC);
+                string newC2 = codigo + "1";
+                printCodes(this->tree[index].internalNode.rightIndex, newC2);
+            }
+        }
+
 };
 
 //===================================================================
@@ -171,8 +183,6 @@ int main()
     occurrenceNode *heap = new occurrenceNode[N_numberOfLeafs];
     occurrenceNode *treePointer = new occurrenceNode[2*N_numberOfLeafs-1];
 
-    cout << "numero " << 2*N_numberOfLeafs-1 << '\n';
-
     Heap occurrenceHeap = Heap(heap);
     HuffmanTree tree = HuffmanTree(treePointer);
 
@@ -210,7 +220,7 @@ int main()
         occurrenceHeap.insertAnode(newHeapNode);
     }
 
-    cout << "Vou printar as folhas das árvores: ======\n";
+    /* cout << "Vou printar as folhas das árvores: ======\n";
 
     cout << "==============\n";
 
@@ -228,6 +238,13 @@ int main()
         cout << "right ind: " << tree.tree[i].internalNode.rightIndex << '\n';
         cout << "==============\n";
     }
+ */
+
+
+    tree.printCodes(8);
+
+
+
 
 
     return 0;
