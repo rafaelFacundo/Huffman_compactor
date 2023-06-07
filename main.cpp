@@ -107,7 +107,7 @@ class Heap {
 //TREE
 
 class HuffmanTree {
-    private:
+    public:
         occurrenceNode *tree;
         int insertIndex = 0;
     public:
@@ -171,6 +171,8 @@ int main()
     occurrenceNode *heap = new occurrenceNode[N_numberOfLeafs];
     occurrenceNode *treePointer = new occurrenceNode[2*N_numberOfLeafs-1];
 
+    cout << "numero " << 2*N_numberOfLeafs-1 << '\n';
+
     Heap occurrenceHeap = Heap(heap);
     HuffmanTree tree = HuffmanTree(treePointer);
 
@@ -195,7 +197,38 @@ int main()
     while(occurrenceHeap.numberOfele() > 1) {
         occurrenceNode nodeOne = occurrenceHeap.removeMinimun();
         occurrenceNode nodeTwo = occurrenceHeap.removeMinimun();
+
+        occurrenceNode newTreeNode;
+        newTreeNode.internalNode.leftIndex = nodeOne.occurrenceStruct.treeIndex;
+        newTreeNode.internalNode.rightIndex = nodeTwo.occurrenceStruct.treeIndex;
+
+        int indexInsertedOnTree = tree.insertAnode(newTreeNode);
+
+        occurrenceNode newHeapNode;
+        newHeapNode.occurrenceStruct.occurrence = nodeOne.occurrenceStruct.occurrence + nodeTwo.occurrenceStruct.occurrence;
+        newHeapNode.occurrenceStruct.treeIndex = indexInsertedOnTree;
+        occurrenceHeap.insertAnode(newHeapNode);
     }
+
+    cout << "Vou printar as folhas das árvores: ======\n";
+
+    cout << "==============\n";
+
+    for (int i = 0; i < 5; ++i) {
+        cout << tree.tree[i].character << " \n";
+    }
+
+    cout << "==============\n";
+
+    cout << "Vou printar os nós internos: =====\n";
+
+    for (int i = 5; i < 9; ++i) {
+        cout << "==============\n";
+        cout << "left ind: " << tree.tree[i].internalNode.leftIndex << '\n';
+        cout << "right ind: " << tree.tree[i].internalNode.rightIndex << '\n';
+        cout << "==============\n";
+    }
+
 
     return 0;
 }
