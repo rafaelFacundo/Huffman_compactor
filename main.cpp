@@ -8,13 +8,13 @@ using namespace std;
 struct treeNode
 {
     int occurrence;
-    int treeIndex;
+    uint8_t treeIndex;
 };
 
 struct internalNodeTree
 {
-    int leftIndex;
-    int rightIndex;
+    uint8_t leftIndex;
+    uint8_t rightIndex;
 };
 
 union occurrenceNode
@@ -27,7 +27,7 @@ union occurrenceNode
 struct codeAndCodeLen
 {
     int len;
-    bitset<16> code;
+    bitset<8> code;
 };
 
 //===================================================================
@@ -37,7 +37,7 @@ class Heap
 {
 private:
     occurrenceNode *heap;
-    int numberOfElements;
+    int numberOfElements = 0;
 
 public:
     Heap(occurrenceNode *Heap) : heap{Heap} {}
@@ -71,6 +71,7 @@ public:
     {
         ++this->numberOfElements;
         this->heap[this->numberOfElements - 1] = newNode;
+
         this->fixHeapInsertion(this->numberOfElements - 1);
     }
 
@@ -157,11 +158,11 @@ public:
         }
     }
 
-    void runThroughoutTheTree(unordered_map<char, codeAndCodeLen> *table, int index, string code = "")
+    void runThroughoutTheTree(unordered_map<unsigned char, codeAndCodeLen> *table, int index, string code = "")
     {
         if (index >= 0 && index <= numberOfElements - 1)
         {
-            (*table)[this->tree[index].character] = codeAndCodeLen{int(code.length()), bitset<16>(code)};
+            (*table)[this->tree[index].character] = codeAndCodeLen{int(code.length()), bitset<8>(code)};
         }
         else
         {
@@ -177,11 +178,75 @@ public:
         this->runThroughoutTheTree(this->insertIndex - 1);
     }
 
-    void populateSomeTableWithCodes(unordered_map<char, codeAndCodeLen> *table)
+    void populateSomeTableWithCodes(unordered_map<unsigned char, codeAndCodeLen> *table)
     {
         this->runThroughoutTheTree(table, this->insertIndex - 1);
     }
 };
+
+//==================================================================
+
+void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifstream *fileToRead, ofstream *fileToWrite)
+{
+    unsigned char byteReaded;
+    bitset<8> byteToWrite(0);
+    uint8_t numberOfShifts = 0;
+
+    while (true)
+    {
+        byteReaded = fileToRead->get();
+        if (fileToRead->eof())
+            break;
+        codeAndCodeLen charactereCode = (*table)[byteReaded];
+        if (numberOfShifts < 8 && charactereCode.len <= (8 - numberOfShifts))
+        {
+            /* cout << "==========\n";
+            cout << "vou escrever o: " << (char)(byteReaded) << '\n';
+            cout << "O código dele é: " << charactereCode.code << '\n';
+            cout << "O tamanho do código é: " << charactereCode.len << '\n'; */
+            byteToWrite <<= charactereCode.len;
+            byteToWrite |= charactereCode.code;
+            /* cout << "o byte a ser escrito é o: " << byteToWrite << '\n';
+            cout << "==========\n"; */
+            numberOfShifts += charactereCode.len;
+        }
+        else if (numberOfShifts < 8 && charactereCode.len > (8 - numberOfShifts))
+        {
+            /* cout << "caractere passou do limite\n";
+            cout << "Só restam: " << (8 - numberOfShifts) << " posições\n";
+            cout << "Mas o tam do code é: " << charactereCode.len << '\n'; */
+            int numberOfShiftsToDoInCode = charactereCode.len - (8 - numberOfShifts);
+            bitset<8> copyOfByteReaded = (charactereCode.code >> numberOfShiftsToDoInCode);
+            /* cout << "Após a copia e shift ficou: " << copyOfByteReaded << '\n'; */
+            byteToWrite <<= (8 - numberOfShifts);
+            byteToWrite |= copyOfByteReaded;
+            cout << byteToWrite;
+            (*fileToWrite) << byteToWrite;
+            /* cout << "o byte a ser escrito: " << byteToWrite << " - ";
+            cout << "zerar"; */
+            copyOfByteReaded <<= numberOfShiftsToDoInCode;
+            copyOfByteReaded.flip();
+            charactereCode.code &= copyOfByteReaded;
+            byteToWrite.reset();
+            byteToWrite |= charactereCode.code;
+            cout << byteToWrite;
+            (*fileToWrite) << byteToWrite;
+            /* cout << byteToWrite << '\n'; */
+            numberOfShifts = numberOfShiftsToDoInCode;
+        }
+
+        if (numberOfShifts == 8)
+        {
+            /* cout << "atingiu o limite ===\n"; */
+            cout << byteToWrite;
+            (*fileToWrite) << byteToWrite;
+            numberOfShifts = 0;
+            byteToWrite.reset();
+        }
+    }
+    cout << '\n';
+    (*fileToWrite) << endl;
+}
 
 //===================================================================
 
@@ -189,16 +254,17 @@ int main()
 {
     string fileName = "arquivoTeste.txt";
     int *occurenceVector = new int[256];
-    int N_numberOfLeafs = 0;
+    uint8_t N_numberOfLeafs = 0;
 
-    ifstream file(fileName.data(), std::ios_base::in | std::ios_base::binary);
+    ifstream *file = new ifstream(fileName.data(), std::ios_base::in | std::ios_base::binary);
+    ofstream *outputFile = new ofstream("said.txt", std::ios_base::out | std::ios_base::binary);
 
     unsigned char byte;
 
     while (true)
     {
-        byte = file.get();
-        if (file.eof())
+        byte = file->get();
+        if (file->eof())
             break;
         occurenceVector[(int)byte] += 1;
     }
@@ -220,6 +286,7 @@ int main()
     }
 
     occurrenceNode *heap = new occurrenceNode[N_numberOfLeafs];
+
     occurrenceNode *treePointer = new occurrenceNode[2 * N_numberOfLeafs - 1];
 
     Heap occurrenceHeap = Heap(heap);
@@ -257,13 +324,9 @@ int main()
         occurrenceHeap.insertAnode(newHeapNode);
     }
 
-    tree.printCodes();
+    /* tree.printCodes(); */
 
-    unordered_map<char, codeAndCodeLen> *codeTable = new unordered_map<char, codeAndCodeLen>();
-    string t = "1";
-    bitset<8> a(t);
-
-    cout << "The number in binary is: " << a << '\n';
+    unordered_map<unsigned char, codeAndCodeLen> *codeTable = new unordered_map<unsigned char, codeAndCodeLen>();
 
     tree.populateSomeTableWithCodes(codeTable);
 
@@ -272,6 +335,9 @@ int main()
         cout << element.first << ": " << element.second.code << " - " << element.second.len << '\n';
     }
 
+    file->clear();
+    file->seekg(0);
+    writeCompiledCodes(codeTable, file, outputFile);
     return 0;
 }
 
