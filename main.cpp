@@ -295,7 +295,6 @@ public:
         bitset<8> byteReaded;
         int byteIndex = 0;
         int treeIndex = this->insertIndex - 1;
-        occurrenceNode treeNode = this->tree[treeIndex];
         int numberOfBytesWritten = 0;
         while (numberOfBytesWritten < numberOfBytes)
         {
@@ -350,7 +349,7 @@ public:
                 cout << "=====================\n";
             }
         }
-        (*fileToWrite) << endl;
+        (*fileToWrite) << std::flush;
     }
 };
 
@@ -363,56 +362,6 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
     uint8_t numberOfShifts = 0;
     codeAndCodeLen charactereCode;
     ostringstream tempString;
-
-    /* while (numberOfBytes > 1)
-    {
-        byteReaded = fileToRead->get();
-        charactereCode = (*table)[byteReaded];
-        if (numberOfShifts < 8 && charactereCode.len <= (8 - numberOfShifts))
-        {
-            byteToWrite <<= charactereCode.len;
-            byteToWrite |= charactereCode.code;
-            numberOfShifts += charactereCode.len;
-        }
-        else if (numberOfShifts < 8 && charactereCode.len > (8 - numberOfShifts))
-        {
-            int numberOfShiftsToDoInCode = charactereCode.len - (8 - numberOfShifts);
-            bitset<8> copyOfByteReaded = (charactereCode.code >> numberOfShiftsToDoInCode);
-            byteToWrite <<= (8 - numberOfShifts);
-            byteToWrite |= copyOfByteReaded;
-            cout << byteToWrite;
-            (*fileToWrite) << (unsigned char)byteToWrite.to_ullong();
-            copyOfByteReaded <<= numberOfShiftsToDoInCode;
-            copyOfByteReaded.flip();
-            charactereCode.code &= copyOfByteReaded;
-            byteToWrite.reset();
-            byteToWrite |= charactereCode.code;
-            cout << byteToWrite;
-            numberOfShifts = numberOfShiftsToDoInCode;
-        }
-
-        if (numberOfShifts == 8)
-        {
-
-            cout << byteToWrite;
-            (*fileToWrite) << (unsigned char)byteToWrite.to_ullong();
-            numberOfShifts = 0;
-            byteToWrite.reset();
-        }
-        --numberOfBytes;
-    }
-    byteReaded = fileToRead->get();
-    charactereCode = (*table)[byteReaded];
-    if (numberOfShifts < 8 && charactereCode.len <= (8 - numberOfShifts))
-    {
-        byteToWrite <<= charactereCode.len;
-        byteToWrite |= charactereCode.code;
-        numberOfShifts += charactereCode.len;
-    }
-
-    if (numberOfShifts < 8) {
-        byteToWrite
-    } */
 
     while (true)
     {
@@ -460,7 +409,7 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
 
     cout << '\n';
 
-    (*fileToWrite) << endl;
+    (*fileToWrite) << std::flush;
 }
 
 //===================================================================
@@ -587,6 +536,10 @@ int main()
     tree.runThroughoutTheTree(2 * N_numberOfLeafs - 2);
     cout << "PRINTAR ARVORE LIDA ========\n";
     tree2.runThroughoutTheTree(2 * N_numberOfLeafs - 2); */
+
+    /* ==================================================================================== */
+    /* ==================================================================================== */
+    /* ==================================================================================== */
 
     ifstream *saida = new ifstream("said.txt", std::ios_base::in | std::ios_base::binary);
 
