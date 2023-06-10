@@ -159,6 +159,31 @@ public:
         }
     }
 
+    /*  void runThroughoutTheTree(bitset<8> byteReaded, int &index, ofstream *fileToWrite, int &byteIndex, bool &found)
+     {
+         if (index >= 0 && index <= numberOfElements - 1)
+         {
+             (*fileToWrite) << (char)this->tree[index].character;
+             index = 0;
+             found = true;
+             if (byteIndex < 8) {
+                 //chamar a mesma função novamente
+             }
+         }
+         else if (index >= this->numberOfElements && byteIndex > 7)
+         {
+             byteIndex = 0;
+             found = false;
+         }
+         else
+         {
+
+             runThroughoutTheTree(byteReaded, );
+
+             runThroughoutTheTree(this->tree[index].internalNode.rightIndex, newC2);
+         }
+     }
+  */
     void runThroughoutTheTree(unordered_map<unsigned char, codeAndCodeLen> *table, int index, string code = "")
     {
         if (index >= 0 && index <= numberOfElements - 1)
@@ -248,6 +273,84 @@ public:
             this->insertAnode(newNode);
             ++i;
         }
+    }
+
+    void printTreeAsVector()
+    {
+        for (int i = 0; i < 5; ++i)
+        {
+            cout << this->tree[i].character << '\n';
+        }
+        for (int i = 5; i < this->insertIndex; ++i)
+        {
+            cout << "========\n";
+            cout << "left: " << (int)this->tree[i].internalNode.leftIndex << '\n';
+            cout << "right: " << (int)this->tree[i].internalNode.rightIndex << '\n';
+            cout << "=========\n";
+        }
+    }
+
+    void writeUnzzipedFileByTheTree(ofstream *fileToWrite, ifstream *fileToRead, int numberOfBytes)
+    {
+        bitset<8> byteReaded;
+        int byteIndex = 0;
+        int treeIndex = this->insertIndex - 1;
+        occurrenceNode treeNode = this->tree[treeIndex];
+        int numberOfBytesWritten = 0;
+        while (numberOfBytesWritten < numberOfBytes)
+        {
+            cout << "o numero de bytes escritos é: " << numberOfBytesWritten << '\n';
+            byteIndex = 7;
+            byteReaded = bitset<8>(fileToRead->get());
+            cout << "Eu li o byte: " << byteReaded << '\n';
+
+            while (byteIndex >= 0 && numberOfBytesWritten < numberOfBytes)
+            {
+                cout << "o numero de bytes escritos é: " << numberOfBytesWritten << '\n';
+                if (treeIndex < this->numberOfElements)
+                {
+                    cout << "escrevi o caracte " << (char)this->tree[treeIndex].character << '\n';
+                    (*fileToWrite) << (unsigned char)this->tree[treeIndex].character;
+                    numberOfBytesWritten += 1;
+                    treeIndex = this->insertIndex - 1;
+                }
+                else if (byteIndex < 0 && treeIndex >= this->numberOfElements)
+                {
+                    cout << "Entrei no segundo else == \n";
+                    break;
+                }
+                else
+                {
+                    cout << "Entrei no ultimo else ===\n";
+                    if (byteReaded[byteIndex] == 1)
+                    {
+                        cout << "no ultimo else - primeiro - valor do bit lido é 1 -  " << byteReaded[byteIndex] << '\n';
+                        treeIndex = (int)this->tree[treeIndex].internalNode.rightIndex;
+                        cout << "Tree index recebeu == " << treeIndex << '\n';
+                        cout << "O treeNode a ser recebido ==== \n";
+                        cout << "======\n";
+                        cout << "left: " << (int)this->tree[treeIndex].internalNode.leftIndex << '\n';
+                        cout << "right: " << (int)this->tree[treeIndex].internalNode.rightIndex << '\n';
+                        cout << "=======\n";
+                    }
+                    else
+                    {
+                        cout << "no ultimo else - segundo - valor do bit lido é 0 - " << byteReaded[byteIndex] << '\n';
+                        treeIndex = (int)this->tree[treeIndex].internalNode.leftIndex;
+                        cout << "Tree index recebeu == " << treeIndex << '\n';
+                        cout << "O treeNode a ser recebido ==== \n";
+                        cout << "======\n";
+                        cout << "left: " << (int)this->tree[treeIndex].internalNode.leftIndex << '\n';
+                        cout << "right: " << (int)this->tree[treeIndex].internalNode.rightIndex << '\n';
+                        cout << "=======\n";
+                    }
+                    cout << "O index da arvore recebe == " << treeIndex << '\n';
+                    --byteIndex;
+                }
+                cout << "=====================\n";
+            }
+        }
+        (*fileToWrite) << endl;
     }
 };
 
@@ -498,6 +601,18 @@ int main()
     treeFromTheFile.populateTreeFromAFile(saida);
 
     treeFromTheFile.runThroughoutTheTree(2 * numberOfDiferentElements - 2);
+
+    treeFromTheFile.printTreeAsVector();
+
+    cout << "=====\n";
+
+    int numberOfBytes = (int)saida->get();
+
+    cout << "O numero de bytes é: " << numberOfBytes << '\n';
+
+    ofstream *saidaDescomp = new ofstream("descomp.txt", std::ios_base::out | std::ios_base::binary);
+
+    treeFromTheFile.writeUnzzipedFileByTheTree(saidaDescomp, saida, numberOfBytes);
 
     /* while (true)
     {
