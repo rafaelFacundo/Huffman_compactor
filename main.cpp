@@ -416,17 +416,17 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
 
 int main()
 {
-    string fileName = "arquivoTeste.txt";
-    /* int *occurenceVector = new int[256];
+    string fileName = "arquivoTeste2.txt";
+    int *occurenceVector = new int[256];
     uint8_t N_numberOfLeafs = 0;
-    int numberOfBytes = 0; */
+    int numberOfBytes = 0;
 
-    ifstream *file = new ifstream(fileName.data(), std::ios_base::in | std::ios_base::binary);
-    // ofstream *outputFile = new ofstream("said.txt", std::ios_base::out | std::ios_base::binary);
+    /* ifstream *file = new ifstream(fileName.data(), std::ios_base::in | std::ios_base::binary);
+    ofstream *outputFile = new ofstream("said2.txt", std::ios_base::out | std::ios_base::binary);
 
     unsigned char byte;
 
-    /* while (true)
+    while (true)
     {
         byte = file->get();
         if (file->eof())
@@ -436,9 +436,26 @@ int main()
             N_numberOfLeafs += 1;
         }
         occurenceVector[(int)byte] += 1;
-
         numberOfBytes += 1;
     }
+
+    if (N_numberOfLeafs < 1)
+    {
+        return 0;
+    }
+    if (N_numberOfLeafs < 2)
+    {
+        (*outputFile) << (unsigned char)N_numberOfLeafs;
+        (*outputFile) << (unsigned char)numberOfBytes;
+        int i = 0;
+        while (occurenceVector[i] == 0)
+            ++i;
+        (*outputFile) << (unsigned char)i;
+        (*outputFile) << std::flush;
+        return 0;
+    }
+
+    return 0;
 
     occurrenceNode *heap = new occurrenceNode[N_numberOfLeafs];
 
@@ -535,15 +552,34 @@ int main()
     cout << "PRINTAR ARVORE DE ANTES ===\n";
     tree.runThroughoutTheTree(2 * N_numberOfLeafs - 2);
     cout << "PRINTAR ARVORE LIDA ========\n";
-    tree2.runThroughoutTheTree(2 * N_numberOfLeafs - 2); */
+    tree2.runThroughoutTheTree(2 * N_numberOfLeafs - 2);
+
+    (*outputFile).close(); */
 
     /* ==================================================================================== */
     /* ==================================================================================== */
     /* ==================================================================================== */
 
-    ifstream *saida = new ifstream("said.txt", std::ios_base::in | std::ios_base::binary);
+    ifstream *saida = new ifstream("said2.txt", std::ios_base::in | std::ios_base::binary);
+    ofstream *saidaDescomp = new ofstream("descomp2.txt", std::ios_base::out | std::ios_base::binary);
 
     int numberOfDiferentElements = (int)saida->get();
+
+    if (numberOfDiferentElements < 2)
+    {
+        cout << "NUmero de elementos diferentes " << numberOfDiferentElements << '\n';
+        int numberOfBytesToBeWrite = (int)saida->get();
+        cout << "NUmer de bytes a ser escrito " << numberOfBytesToBeWrite << '\n';
+        unsigned char charToBeWrite = (char)saida->get();
+        cout << "Char a ser escrito " << charToBeWrite << '\n';
+        while (numberOfBytesToBeWrite > 0)
+        {
+            (*saidaDescomp) << charToBeWrite;
+            --numberOfBytesToBeWrite;
+        }
+        (*saidaDescomp) << std::flush;
+        return 0;
+    }
 
     cout << "primeiro byte: " << numberOfDiferentElements << '\n';
 
@@ -559,11 +595,9 @@ int main()
 
     cout << "=====\n";
 
-    int numberOfBytes = (int)saida->get();
+    numberOfBytes = (int)saida->get();
 
     cout << "O numero de bytes é: " << numberOfBytes << '\n';
-
-    ofstream *saidaDescomp = new ofstream("descomp.txt", std::ios_base::out | std::ios_base::binary);
 
     treeFromTheFile.writeUnzzipedFileByTheTree(saidaDescomp, saida, numberOfBytes);
 
