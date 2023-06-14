@@ -381,20 +381,20 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
             bitset<8> copyOfByteReaded = (charactereCode.code >> numberOfShiftsToDoInCode);
             byteToWrite <<= (8 - numberOfShifts);
             byteToWrite |= copyOfByteReaded;
-            cout << byteToWrite;
+
             (*fileToWrite) << (unsigned char)byteToWrite.to_ullong();
             copyOfByteReaded <<= numberOfShiftsToDoInCode;
             copyOfByteReaded.flip();
             charactereCode.code &= copyOfByteReaded;
             byteToWrite.reset();
             byteToWrite |= charactereCode.code;
-            cout << byteToWrite;
+
             numberOfShifts = numberOfShiftsToDoInCode;
         }
 
         if (numberOfShifts == 8)
         {
-            cout << byteToWrite;
+
             (*fileToWrite) << (unsigned char)byteToWrite.to_ullong();
             numberOfShifts = 0;
             byteToWrite.reset();
@@ -416,13 +416,13 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
 
 int main()
 {
-    string fileName = "arquivoTeste2.txt";
+    string fileName = "6.bmp";
     int *occurenceVector = new int[256];
     uint8_t N_numberOfLeafs = 0;
     int numberOfBytes = 0;
 
-    /* ifstream *file = new ifstream(fileName.data(), std::ios_base::in | std::ios_base::binary);
-    ofstream *outputFile = new ofstream("said2.txt", std::ios_base::out | std::ios_base::binary);
+    ifstream *file = new ifstream(fileName.data(), std::ios_base::in | std::ios_base::binary);
+    ofstream *outputFile = new ofstream("said11.bmp", std::ios_base::out | std::ios_base::binary);
 
     unsigned char byte;
 
@@ -441,12 +441,15 @@ int main()
 
     if (N_numberOfLeafs < 1)
     {
+        cout << "aaaaa\n";
         return 0;
     }
     if (N_numberOfLeafs < 2)
     {
         (*outputFile) << (unsigned char)N_numberOfLeafs;
-        (*outputFile) << (unsigned char)numberOfBytes;
+        (*outputFile) << std::flush;
+        //(*outputFile) << (unsigned char)numberOfBytes;
+        (*outputFile).write((char *)&numberOfBytes, sizeof(numberOfBytes));
         int i = 0;
         while (occurenceVector[i] == 0)
             ++i;
@@ -454,8 +457,6 @@ int main()
         (*outputFile) << std::flush;
         return 0;
     }
-
-    return 0;
 
     occurrenceNode *heap = new occurrenceNode[N_numberOfLeafs];
 
@@ -500,6 +501,8 @@ int main()
 
     tree.populateSomeTableWithCodes(codeTable);
 
+    // tree.printTreeAsVector();
+
     for (auto element : (*codeTable))
     {
         cout << element.first << ": " << element.second.code << " - " << element.second.len << '\n';
@@ -510,65 +513,39 @@ int main()
 
     (*outputFile) << (unsigned char)N_numberOfLeafs;
 
+    cout << "numberof lead: " << (int)N_numberOfLeafs << '\n';
+
     tree.writeTreInAfile(outputFile);
 
-    (*outputFile) << (unsigned char)numberOfBytes;
+    (*outputFile) << std::flush;
+    //(*outputFile) << (unsigned char)numberOfBytes;
+    (*outputFile).write((char *)&numberOfBytes, sizeof(numberOfBytes));
+
+    cout << "Number of bytes: " << numberOfBytes << '\n';
 
     writeCompiledCodes(codeTable, file, outputFile);
 
-    ofstream *outputFile2 = new ofstream("testArvore.txt", std::ios_base::out | std::ios_base::binary);
+    (*outputFile).close();
 
-    tree.writeTreInAfile(outputFile2);
-
-    outputFile2->close();
-
-    ifstream *outputFile3 = new ifstream("testArvore.txt", std::ios_base::in | std::ios_base::binary);
-
-    occurrenceNode *treePointer2 = new occurrenceNode[2 * N_numberOfLeafs - 1];
-
-    HuffmanTree tree2 = HuffmanTree(treePointer2, N_numberOfLeafs);
-
-    tree2.populateTreeFromAFile(outputFile3);
-
-    ofstream teste;
-
-    teste << "blablabla";
-
-    (*outputFile2) << teste.rdbuf();
-
-    cout << "leitura do arquivo da arvore\n";
-    outputFile3->clear();
-    outputFile3->seekg(0);
-    while (true)
-    {
-        byte = outputFile3->get();
-        if (outputFile3->eof())
-            break;
-        cout << bitset<8>(byte);
-    }
-
-    cout << '\n';
-    cout << "====================================\n";
-    cout << "PRINTAR ARVORE DE ANTES ===\n";
-    tree.runThroughoutTheTree(2 * N_numberOfLeafs - 2);
-    cout << "PRINTAR ARVORE LIDA ========\n";
-    tree2.runThroughoutTheTree(2 * N_numberOfLeafs - 2);
-
-    (*outputFile).close(); */
+    return 0;
 
     /* ==================================================================================== */
     /* ==================================================================================== */
     /* ==================================================================================== */
 
-    ifstream *saida = new ifstream("said2.txt", std::ios_base::in | std::ios_base::binary);
-    ofstream *saidaDescomp = new ofstream("descomp2.txt", std::ios_base::out | std::ios_base::binary);
+    ifstream *saida = new ifstream("said8.txt", std::ios_base::in | std::ios_base::binary);
+    ofstream *saidaDescomp = new ofstream("descomp8.txt", std::ios_base::out | std::ios_base::binary);
 
     int numberOfDiferentElements = (int)saida->get();
+
+    if (saida->eof())
+        return 0;
 
     if (numberOfDiferentElements < 2)
     {
         cout << "NUmero de elementos diferentes " << numberOfDiferentElements << '\n';
-        int numberOfBytesToBeWrite = (int)saida->get();
+        int numberOfBytesToBeWrite = 0;
+        saida->read(reinterpret_cast<char *>(&numberOfBytesToBeWrite), sizeof(int));
         cout << "NUmer de bytes a ser escrito " << numberOfBytesToBeWrite << '\n';
         unsigned char charToBeWrite = (char)saida->get();
         cout << "Char a ser escrito " << charToBeWrite << '\n';
@@ -595,9 +572,11 @@ int main()
 
     cout << "=====\n";
 
-    numberOfBytes = (int)saida->get();
+    // numberOfBytes = (int)saida->get();
+    saida->read(reinterpret_cast<char *>(&numberOfBytes), sizeof(int));
 
-    cout << "O numero de bytes é: " << numberOfBytes << '\n';
+    cout
+        << "O numero de bytes é: " << numberOfBytes << '\n';
 
     treeFromTheFile.writeUnzzipedFileByTheTree(saidaDescomp, saida, numberOfBytes);
 
