@@ -28,7 +28,7 @@ union occurrenceNode
 struct codeAndCodeLen
 {
     int len;
-    bitset<8> code;
+    bitset<16> code;
 };
 
 //===================================================================
@@ -188,7 +188,7 @@ public:
     {
         if (index >= 0 && index <= numberOfElements - 1)
         {
-            (*table)[this->tree[index].character] = codeAndCodeLen{int(code.length()), bitset<8>(code)};
+            (*table)[this->tree[index].character] = codeAndCodeLen{int(code.length()), bitset<16>(code)};
         }
         else
         {
@@ -358,7 +358,7 @@ public:
 void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifstream *fileToRead, ofstream *fileToWrite)
 {
     unsigned char byteReaded;
-    bitset<8> byteToWrite(0);
+    bitset<16> byteToWrite(0);
     uint8_t numberOfShifts = 0;
     codeAndCodeLen charactereCode;
     ostringstream tempString;
@@ -378,7 +378,7 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
         else if (numberOfShifts < 8 && charactereCode.len > (8 - numberOfShifts))
         {
             int numberOfShiftsToDoInCode = charactereCode.len - (8 - numberOfShifts);
-            bitset<8> copyOfByteReaded = (charactereCode.code >> numberOfShiftsToDoInCode);
+            bitset<16> copyOfByteReaded = (charactereCode.code >> numberOfShiftsToDoInCode);
             byteToWrite <<= (8 - numberOfShifts);
             byteToWrite |= copyOfByteReaded;
 
@@ -416,21 +416,22 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
 
 int main()
 {
-    string fileName = "6.bmp";
+    string fileName = "8_linha_exponencial_ate_t.txt";
     int *occurenceVector = new int[256];
-    uint8_t N_numberOfLeafs = 0;
+    int N_numberOfLeafs = 0;
     int numberOfBytes = 0;
 
     ifstream *file = new ifstream(fileName.data(), std::ios_base::in | std::ios_base::binary);
     ofstream *outputFile = new ofstream("said11.bmp", std::ios_base::out | std::ios_base::binary);
 
     unsigned char byte;
-
     while (true)
     {
         byte = file->get();
         if (file->eof())
+        {
             break;
+        }
         if (occurenceVector[(int)byte] <= 0)
         {
             N_numberOfLeafs += 1;
@@ -507,6 +508,10 @@ int main()
     {
         cout << element.first << ": " << element.second.code << " - " << element.second.len << '\n';
     }
+
+    tree.printCodes();
+
+    return 0;
 
     file->clear();
     file->seekg(0);
