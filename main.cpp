@@ -28,7 +28,7 @@ union occurrenceNode
 struct codeAndCodeLen
 {
     int len;
-    bitset<16> code;
+    bitset<32> code;
 };
 
 //===================================================================
@@ -159,36 +159,11 @@ public:
         }
     }
 
-    /*  void runThroughoutTheTree(bitset<8> byteReaded, int &index, ofstream *fileToWrite, int &byteIndex, bool &found)
-     {
-         if (index >= 0 && index <= numberOfElements - 1)
-         {
-             (*fileToWrite) << (char)this->tree[index].character;
-             index = 0;
-             found = true;
-             if (byteIndex < 8) {
-                 //chamar a mesma função novamente
-             }
-         }
-         else if (index >= this->numberOfElements && byteIndex > 7)
-         {
-             byteIndex = 0;
-             found = false;
-         }
-         else
-         {
-
-             runThroughoutTheTree(byteReaded, );
-
-             runThroughoutTheTree(this->tree[index].internalNode.rightIndex, newC2);
-         }
-     }
-  */
     void runThroughoutTheTree(unordered_map<unsigned char, codeAndCodeLen> *table, int index, string code = "")
     {
         if (index >= 0 && index <= numberOfElements - 1)
         {
-            (*table)[this->tree[index].character] = codeAndCodeLen{int(code.length()), bitset<16>(code)};
+            (*table)[this->tree[index].character] = codeAndCodeLen{int(code.length()), bitset<32>(code)};
         }
         else
         {
@@ -358,7 +333,7 @@ public:
 void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifstream *fileToRead, ofstream *fileToWrite)
 {
     unsigned char byteReaded;
-    bitset<16> byteToWrite(0);
+    bitset<32> byteToWrite(0);
     uint8_t numberOfShifts = 0;
     codeAndCodeLen charactereCode;
     ostringstream tempString;
@@ -378,7 +353,7 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
         else if (numberOfShifts < 8 && charactereCode.len > (8 - numberOfShifts))
         {
             int numberOfShiftsToDoInCode = charactereCode.len - (8 - numberOfShifts);
-            bitset<16> copyOfByteReaded = (charactereCode.code >> numberOfShiftsToDoInCode);
+            bitset<32> copyOfByteReaded = (charactereCode.code >> numberOfShiftsToDoInCode);
             byteToWrite <<= (8 - numberOfShifts);
             byteToWrite |= copyOfByteReaded;
 
@@ -596,3 +571,31 @@ int main()
 }
 
 /* g++ -Wall -Wextra -std=c++17 -pedantic -o programa main.cpp */
+
+/*
+
+numberOfShifts < 8 && charactereCode.len <= (8 - numberOfShifts)
+só escreve e passa pro próximo
+
+se não se numberOfShifts < 8 && charactereCode.len > (8 - numberOfShifts)
+aqui provalvemente vou entrar em loop pra descarregar até acabar o "tamanho do código"
+
+
+    enquanto tiver "tamanho para escrever" (> 0)
+        espaçoLivre = pego quanto de espaço ta sobrando no bit que vai ser escrito
+        pego a quantidade em espaçoLivre e tiro essa quantidade de bits do código
+            dps dou um shift pra direita no código
+            "diminuo" o tamanho dele, a quantidade de shift
+        fasso um or pra colocar esses bits lá
+        coloco o bit na stream do arquivo
+        dou reset no bit
+        reseto a quantidade de shifts feita no bit
+        vou pro inicio do for
+
+                        00000000
+00000000000000000000000000000000
+
+
+
+
+*/
