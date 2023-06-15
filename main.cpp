@@ -338,6 +338,27 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
     codeAndCodeLen charactereCode;
     ostringstream tempString;
 
+    /*
+
+        numberOfShifts < 8 && charactereCode.len <= (8 - numberOfShifts)
+        só escreve e passa pro próximo
+
+        se não se numberOfShifts < 8 && charactereCode.len > (8 - numberOfShifts)
+        aqui provalvemente vou entrar em loop pra descarregar até acabar o "tamanho do código"
+
+
+            enquanto tiver "tamanho para escrever" (> 0)
+                espaçoLivre = pego quanto de espaço ta sobrando no bit que vai ser escrito
+                pego a quantidade em espaçoLivre e tiro essa quantidade de bits do código
+                    dps dou um shift pra direita no código
+                    "diminuo" o tamanho dele, a quantidade de posições livres
+                fasso um or pra colocar esses bits lá
+                coloco o bit na stream do arquivo
+                dou reset no bit
+                reseto a quantidade de shifts feita no bit
+                vou pro inicio do while
+        */
+
     while (true)
     {
         byteReaded = fileToRead->get();
@@ -352,7 +373,8 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
         }
         else if (numberOfShifts < 8 && charactereCode.len > (8 - numberOfShifts))
         {
-            int numberOfShiftsToDoInCode = charactereCode.len - (8 - numberOfShifts);
+            // codigo antigo
+            /* int numberOfShiftsToDoInCode = charactereCode.len - (8 - numberOfShifts);
             bitset<32> copyOfByteReaded = (charactereCode.code >> numberOfShiftsToDoInCode);
             byteToWrite <<= (8 - numberOfShifts);
             byteToWrite |= copyOfByteReaded;
@@ -364,7 +386,23 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
             byteToWrite.reset();
             byteToWrite |= charactereCode.code;
 
-            numberOfShifts = numberOfShiftsToDoInCode;
+            numberOfShifts = numberOfShiftsToDoInCode; */
+            bitset<32> copyOfByteReaded;
+            int codeLen = charactereCode.len;
+            int positionRemaining = (8 - numberOfShifts);
+            int shiftsTodo = 0;
+            while (codeLen > 0)
+            {
+                shiftsTodo = (codeLen - positionRemaining);
+                copyOfByteReaded = charactereCode.code >> shiftsTodo;
+                codeLen -= shiftsTodo;
+                byteToWrite << positionRemaining;
+                // doing here
+                byteToWrite |= bitset<byteToWrite.size()>(copyOfByteReaded.to_ulong());
+                (*fileToWrite) << (unsigned char)byteToWrite.to_ullong();
+                byteToWrite.reset();
+                positionRemaining = 8;
+            }
         }
 
         if (numberOfShifts == 8)
@@ -391,6 +429,15 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
 
 int main()
 {
+
+    bitset<8> teste1("00000000");
+    bitset<32> teste2("0000000000000000000000001110010");
+    teste2 >>= 4;
+    teste1 |= bitset<teste1.size()>(teste2.to_ulong());
+    cout << "teste1 é: " << teste1 << '\n';
+
+    return 0;
+
     string fileName = "8_linha_exponencial_ate_t.txt";
     int *occurenceVector = new int[256];
     int N_numberOfLeafs = 0;
@@ -571,31 +618,3 @@ int main()
 }
 
 /* g++ -Wall -Wextra -std=c++17 -pedantic -o programa main.cpp */
-
-/*
-
-numberOfShifts < 8 && charactereCode.len <= (8 - numberOfShifts)
-só escreve e passa pro próximo
-
-se não se numberOfShifts < 8 && charactereCode.len > (8 - numberOfShifts)
-aqui provalvemente vou entrar em loop pra descarregar até acabar o "tamanho do código"
-
-
-    enquanto tiver "tamanho para escrever" (> 0)
-        espaçoLivre = pego quanto de espaço ta sobrando no bit que vai ser escrito
-        pego a quantidade em espaçoLivre e tiro essa quantidade de bits do código
-            dps dou um shift pra direita no código
-            "diminuo" o tamanho dele, a quantidade de shift
-        fasso um or pra colocar esses bits lá
-        coloco o bit na stream do arquivo
-        dou reset no bit
-        reseto a quantidade de shifts feita no bit
-        vou pro inicio do for
-
-                        00000000
-00000000000000000000000000000000
-
-
-
-
-*/
