@@ -333,42 +333,24 @@ public:
 void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifstream *fileToRead, ofstream *fileToWrite)
 {
     unsigned char byteReaded;
-    bitset<32> byteToWrite(0);
+    bitset<8> byteToWrite(0);
     uint8_t numberOfShifts = 0;
     codeAndCodeLen charactereCode;
     ostringstream tempString;
-
-    /*
-
-        numberOfShifts < 8 && charactereCode.len <= (8 - numberOfShifts)
-        só escreve e passa pro próximo
-
-        se não se numberOfShifts < 8 && charactereCode.len > (8 - numberOfShifts)
-        aqui provalvemente vou entrar em loop pra descarregar até acabar o "tamanho do código"
-
-
-            enquanto tiver "tamanho para escrever" (> 0)
-                espaçoLivre = pego quanto de espaço ta sobrando no bit que vai ser escrito
-                pego a quantidade em espaçoLivre e tiro essa quantidade de bits do código
-                    dps dou um shift pra direita no código
-                    "diminuo" o tamanho dele, a quantidade de posições livres
-                fasso um or pra colocar esses bits lá
-                coloco o bit na stream do arquivo
-                dou reset no bit
-                reseto a quantidade de shifts feita no bit
-                vou pro inicio do while
-        */
 
     while (true)
     {
         byteReaded = fileToRead->get();
         if (fileToRead->eof())
             break;
+        cout << "=== li o caractere: ==== " << (char)byteReaded << '\n';
         codeAndCodeLen charactereCode = (*table)[byteReaded];
         if (numberOfShifts < 8 && charactereCode.len <= (8 - numberOfShifts))
         {
+            cout << "=== é menor ainda \n";
             byteToWrite <<= charactereCode.len;
-            byteToWrite |= charactereCode.code;
+            byteToWrite |= bitset<byteToWrite.size()>(charactereCode.code.to_ulong());
+            cout << "=== o byte a ser escrito " << byteToWrite << '\n';
             numberOfShifts += charactereCode.len;
         }
         else if (numberOfShifts < 8 && charactereCode.len > (8 - numberOfShifts))
@@ -387,27 +369,55 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
             byteToWrite |= charactereCode.code;
 
             numberOfShifts = numberOfShiftsToDoInCode; */
+            cout << "===  é maior - tamanho é " << charactereCode.len << "e o num " << (8 - numberOfShifts) << '\n';
             bitset<32> copyOfByteReaded;
-            int codeLen = charactereCode.len;
-            int positionRemaining = (8 - numberOfShifts);
             int shiftsTodo = 0;
-            while (codeLen > 0)
+
+            while (charactereCode.len > 0)
             {
-                shiftsTodo = (codeLen - positionRemaining);
-                copyOfByteReaded = charactereCode.code >> shiftsTodo;
-                codeLen -= shiftsTodo;
-                byteToWrite << positionRemaining;
-                // doing here
-                byteToWrite |= bitset<byteToWrite.size()>(copyOfByteReaded.to_ulong());
-                (*fileToWrite) << (unsigned char)byteToWrite.to_ullong();
-                byteToWrite.reset();
-                positionRemaining = 8;
+                if (charactereCode.len <= (8 - numberOfShifts))
+                {
+                    cout << "=== agora ficou menor\n";
+                    byteToWrite <<= charactereCode.len;
+                    cout << "=== apos o shift do taman " << charactereCode.len << '\n';
+                    cout << "=== " << byteToWrite << '\n';
+                    cout << "byte a ser escrito1: " << byteToWrite << '\n';
+                    byteToWrite |= bitset<byteToWrite.size()>(charactereCode.code.to_ulong());
+                    cout << "=== apos o ou no pri " << byteToWrite << '\n';
+                    numberOfShifts += charactereCode.len;
+                    cout << "number of shif " << numberOfShifts << '\n';
+                    charactereCode.len = 0;
+                }
+                else
+                {
+                    cout << "=== entrei no else do segundo while \n";
+                    shiftsTodo = (charactereCode.len - (8 - numberOfShifts));
+                    cout << "=== vou dar um shift de " << shiftsTodo << '\n';
+                    copyOfByteReaded = charactereCode.code >> shiftsTodo;
+                    cout << "=== o resul do shift é " << copyOfByteReaded << '\n';
+                    charactereCode.len = shiftsTodo;
+                    cout << "=== ainda soubrou pra colocar " << charactereCode.len << '\n';
+                    cout << "=== antes do shift com a copia: " << byteToWrite << '\n';
+                    byteToWrite <<= (8 - numberOfShifts);
+                    // doing here
+                    cout << "=== antes do ou com a copia: " << byteToWrite << '\n';
+                    byteToWrite |= bitset<byteToWrite.size()>(copyOfByteReaded.to_ulong());
+
+                    cout << "=== depois do ou com a copia: " << byteToWrite << '\n';
+                    (*fileToWrite) << (unsigned char)byteToWrite.to_ullong();
+                    copyOfByteReaded <<= shiftsTodo;
+                    copyOfByteReaded.flip();
+                    charactereCode.code &= copyOfByteReaded;
+                    byteToWrite.reset();
+                    // numberOfShifts = 0;
+                    numberOfShifts = 0;
+                }
             }
         }
 
         if (numberOfShifts == 8)
         {
-
+            cout << "byte a ser escrito3: " << byteToWrite << '\n';
             (*fileToWrite) << (unsigned char)byteToWrite.to_ullong();
             numberOfShifts = 0;
             byteToWrite.reset();
@@ -430,21 +440,13 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
 int main()
 {
 
-    bitset<8> teste1("00000000");
-    bitset<32> teste2("0000000000000000000000001110010");
-    teste2 >>= 4;
-    teste1 |= bitset<teste1.size()>(teste2.to_ulong());
-    cout << "teste1 é: " << teste1 << '\n';
-
-    return 0;
-
-    string fileName = "8_linha_exponencial_ate_t.txt";
+    string fileName = "arquivoTeste.txt";
     int *occurenceVector = new int[256];
     int N_numberOfLeafs = 0;
     int numberOfBytes = 0;
 
-    ifstream *file = new ifstream(fileName.data(), std::ios_base::in | std::ios_base::binary);
-    ofstream *outputFile = new ofstream("said11.bmp", std::ios_base::out | std::ios_base::binary);
+    /* ifstream *file = new ifstream(fileName.data(), std::ios_base::in | std::ios_base::binary);
+    ofstream *outputFile = new ofstream("said.txt", std::ios_base::out | std::ios_base::binary);
 
     unsigned char byte;
     while (true)
@@ -533,8 +535,6 @@ int main()
 
     tree.printCodes();
 
-    return 0;
-
     file->clear();
     file->seekg(0);
 
@@ -554,14 +554,14 @@ int main()
 
     (*outputFile).close();
 
-    return 0;
+    return 0; */
 
     /* ==================================================================================== */
     /* ==================================================================================== */
     /* ==================================================================================== */
 
-    ifstream *saida = new ifstream("said8.txt", std::ios_base::in | std::ios_base::binary);
-    ofstream *saidaDescomp = new ofstream("descomp8.txt", std::ios_base::out | std::ios_base::binary);
+    ifstream *saida = new ifstream("said.txt", std::ios_base::in | std::ios_base::binary);
+    ofstream *saidaDescomp = new ofstream("descomp.txt", std::ios_base::out | std::ios_base::binary);
 
     int numberOfDiferentElements = (int)saida->get();
 
