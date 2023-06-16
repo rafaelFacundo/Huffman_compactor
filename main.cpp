@@ -136,6 +136,15 @@ public:
 public:
     HuffmanTree(occurrenceNode *Tree, int nofElements) : tree{Tree}, numberOfElements{nofElements} {}
 
+    void printLeafs()
+    {
+        for (int i = 0; i < this->numberOfElements; ++i)
+        {
+            cout << this->tree[i].character << ' ';
+        }
+        cout << '\n';
+    }
+
     int insertAnode(occurrenceNode newNode)
     {
         this->tree[this->insertIndex] = newNode;
@@ -347,11 +356,12 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
         codeAndCodeLen charactereCode = (*table)[byteReaded];
         if (numberOfShifts < 8 && charactereCode.len <= (8 - numberOfShifts))
         {
-            cout << "=== é menor ainda \n";
+            cout << "=== já é pequeno - primeiro if = \n";
             byteToWrite <<= charactereCode.len;
             byteToWrite |= bitset<byteToWrite.size()>(charactereCode.code.to_ulong());
-            cout << "=== o byte a ser escrito " << byteToWrite << '\n';
+            cout << "=== o byte depois do ou " << byteToWrite << '\n';
             numberOfShifts += charactereCode.len;
+            cout << "=== quantidade de shifts " << (int)numberOfShifts << '\n';
         }
         else if (numberOfShifts < 8 && charactereCode.len > (8 - numberOfShifts))
         {
@@ -417,7 +427,7 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
 
         if (numberOfShifts == 8)
         {
-            cout << "byte a ser escrito3: " << byteToWrite << '\n';
+            cout << "shif = 8 byte a ser escrito " << byteToWrite << '\n';
             (*fileToWrite) << (unsigned char)byteToWrite.to_ullong();
             numberOfShifts = 0;
             byteToWrite.reset();
@@ -427,7 +437,8 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
     if (numberOfShifts > 0 && numberOfShifts < 8)
     {
         cout << "\n sai do while antes sobrando bit: " << (int)numberOfShifts << '\n';
-        byteToWrite <<= numberOfShifts;
+        byteToWrite <<= (8 - numberOfShifts);
+        (*fileToWrite) << (unsigned char)byteToWrite.to_ullong();
     }
 
     cout << '\n';
@@ -440,13 +451,13 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
 int main()
 {
 
-    string fileName = "arquivoTeste.txt";
+    string fileName = "6.bmp";
     int *occurenceVector = new int[256];
-    int N_numberOfLeafs = 0;
+    uint16_t N_numberOfLeafs = 0;
     int numberOfBytes = 0;
 
-    /* ifstream *file = new ifstream(fileName.data(), std::ios_base::in | std::ios_base::binary);
-    ofstream *outputFile = new ofstream("said.txt", std::ios_base::out | std::ios_base::binary);
+    ifstream *file = new ifstream(fileName.data(), std::ios_base::in | std::ios_base::binary);
+    ofstream *outputFile = new ofstream("said6.bmp", std::ios_base::out | std::ios_base::binary);
 
     unsigned char byte;
     while (true)
@@ -471,7 +482,8 @@ int main()
     }
     if (N_numberOfLeafs < 2)
     {
-        (*outputFile) << (unsigned char)N_numberOfLeafs;
+        //(*outputFile) << (unsigned char)N_numberOfLeafs;
+        (*outputFile).write((char *)&N_numberOfLeafs, sizeof(uint16_t));
         (*outputFile) << std::flush;
         //(*outputFile) << (unsigned char)numberOfBytes;
         (*outputFile).write((char *)&numberOfBytes, sizeof(numberOfBytes));
@@ -494,9 +506,12 @@ int main()
     {
         if (*(i) > 0)
         {
+
             occurrenceNode treeNode;
             treeNode.character = (char)(i - occurenceVector);
             int indexInserted = tree.insertAnode(treeNode);
+            cout << "o caracte foi " << treeNode.character << '\n';
+            cout << "de binario " << bitset<8>(treeNode.character) << '\n';
 
             occurrenceNode newNode;
             newNode.occurrenceStruct.treeIndex = indexInserted;
@@ -522,6 +537,9 @@ int main()
         occurrenceHeap.insertAnode(newHeapNode);
     }
 
+    tree.printCodes();
+    return 0;
+
     unordered_map<unsigned char, codeAndCodeLen> *codeTable = new unordered_map<unsigned char, codeAndCodeLen>();
 
     tree.populateSomeTableWithCodes(codeTable);
@@ -533,18 +551,22 @@ int main()
         cout << element.first << ": " << element.second.code << " - " << element.second.len << '\n';
     }
 
-    tree.printCodes();
+    // tree.printCodes();
+
+    return 0;
 
     file->clear();
     file->seekg(0);
 
-    (*outputFile) << (unsigned char)N_numberOfLeafs;
+    //(*outputFile) << (unsigned char)N_numberOfLeafs;
+    cout << "numero de folh" << N_numberOfLeafs << '\n';
+    (*outputFile).write((char *)&N_numberOfLeafs, sizeof(uint16_t));
 
     cout << "numberof lead: " << (int)N_numberOfLeafs << '\n';
 
     tree.writeTreInAfile(outputFile);
 
-    (*outputFile) << std::flush;
+    //(*outputFile) << std::flush;
     //(*outputFile) << (unsigned char)numberOfBytes;
     (*outputFile).write((char *)&numberOfBytes, sizeof(numberOfBytes));
 
@@ -554,16 +576,18 @@ int main()
 
     (*outputFile).close();
 
-    return 0; */
+    return 0;
 
     /* ==================================================================================== */
     /* ==================================================================================== */
     /* ==================================================================================== */
 
-    ifstream *saida = new ifstream("said.txt", std::ios_base::in | std::ios_base::binary);
-    ofstream *saidaDescomp = new ofstream("descomp.txt", std::ios_base::out | std::ios_base::binary);
+    ifstream *saida = new ifstream("said.bmp", std::ios_base::in | std::ios_base::binary);
+    ofstream *saidaDescomp = new ofstream("descomp6.bmp", std::ios_base::out | std::ios_base::binary);
 
-    int numberOfDiferentElements = (int)saida->get();
+    // int numberOfDiferentElements = (int)saida->get();
+    int numberOfDiferentElements = 0;
+    saida->read(reinterpret_cast<char *>(&numberOfDiferentElements), sizeof(uint16_t));
 
     if (saida->eof())
         return 0;
