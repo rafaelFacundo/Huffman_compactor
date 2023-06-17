@@ -176,10 +176,8 @@ public:
         }
         else
         {
-            string newC = code + "0";
-            this->runThroughoutTheTree(table, this->tree[index].internalNode.leftIndex, newC);
-            string newC2 = code + "1";
-            this->runThroughoutTheTree(table, this->tree[index].internalNode.rightIndex, newC2);
+            this->runThroughoutTheTree(table, this->tree[index].internalNode.leftIndex, code + "0");
+            this->runThroughoutTheTree(table, this->tree[index].internalNode.rightIndex, code + "1");
         }
     }
 
@@ -196,31 +194,19 @@ public:
 
     void writeTreInAfile(ofstream *fileToWrite)
     {
-        cout << "Vou escrever a arvore no arquivo \n";
-        cout << "Resultado ==========\n";
         occurrenceNode *i = this->tree;
         while (i != (this->tree + this->numberOfElements))
         {
             (*fileToWrite) << (unsigned char)i->character;
-
-            cout << bitset<8>(i->character);
             ++i;
         };
 
         while (i != (this->tree + this->insertIndex))
         {
-            /* cout << "Esout escrevendo o nó interno---------\n";
-            cout << "Esque " << i->internalNode.leftIndex << '\n';
-            cout << "Dire  " << i->internalNode.rightIndex << '\n';
-            cout << "==============\n"; */
-            //(*fileToWrite) << (unsigned char)i->internalNode.leftIndex << (unsigned char)i->internalNode.rightIndex;
             (*fileToWrite).write((char *)&(i->internalNode.leftIndex), sizeof(uint16_t));
             (*fileToWrite).write((char *)&(i->internalNode.rightIndex), sizeof(uint16_t));
-            cout << bitset<8>(i->internalNode.leftIndex) << bitset<8>(i->internalNode.rightIndex);
             ++i;
         }
-
-        cout << '\n';
 
         /* (*fileToWrite) << endl; */
     }
@@ -231,11 +217,9 @@ public:
         int i = 0;
         uint16_t indexes = 0;
 
-        cout << "O numero de elemenetos é : " << this->numberOfElements << '\n';
         while (i < this->numberOfElements)
         {
 
-            cout << "o valor de i: " << i << '\n';
             byteToPutInTree = fileToRead->get();
             occurrenceNode newNode;
             newNode.character = byteToPutInTree;
@@ -249,15 +233,12 @@ public:
         {
 
             occurrenceNode newNode;
-            // byteToPutInTree = fileToRead->get();
-            // leftIndex
+
             fileToRead->read(reinterpret_cast<char *>(&indexes), sizeof(uint16_t));
             newNode.internalNode.leftIndex = indexes;
-            cout << "EU LLI O INDEXX esquerd: " << (int)newNode.internalNode.leftIndex << '\n';
-            // byteToPutInTree = fileToRead->get();
+
             fileToRead->read(reinterpret_cast<char *>(&indexes), sizeof(uint16_t));
             newNode.internalNode.rightIndex = indexes;
-            cout << "EU LLI O INDEXX direit : " << (int)newNode.internalNode.rightIndex << '\n';
 
             this->insertAnode(newNode);
             ++i;
@@ -287,55 +268,40 @@ public:
         int numberOfBytesWritten = 0;
         while (numberOfBytesWritten < numberOfBytes)
         {
-            cout << "o numero de bytes escritos é: " << numberOfBytesWritten << '\n';
+
             byteIndex = 7;
             byteReaded = bitset<8>(fileToRead->get());
-            cout << "Eu li o byte: " << byteReaded << '\n';
 
             while (byteIndex >= 0 && numberOfBytesWritten < numberOfBytes)
             {
-                cout << "o numero de bytes escritos é: " << numberOfBytesWritten << '\n';
+
                 if (treeIndex < this->numberOfElements)
                 {
-                    cout << "escrevi o caracte " << (char)this->tree[treeIndex].character << '\n';
+
                     (*fileToWrite) << (unsigned char)this->tree[treeIndex].character;
                     numberOfBytesWritten += 1;
                     treeIndex = this->insertIndex - 1;
                 }
                 else if (byteIndex < 0 && treeIndex >= this->numberOfElements)
                 {
-                    cout << "Entrei no segundo else == \n";
+
                     break;
                 }
                 else
                 {
-                    cout << "Entrei no ultimo else ===\n";
+
                     if (byteReaded[byteIndex] == 1)
                     {
-                        cout << "no ultimo else - primeiro - valor do bit lido é 1 -  " << byteReaded[byteIndex] << '\n';
+
                         treeIndex = (int)this->tree[treeIndex].internalNode.rightIndex;
-                        cout << "Tree index recebeu == " << treeIndex << '\n';
-                        cout << "O treeNode a ser recebido ==== \n";
-                        cout << "======\n";
-                        cout << "left: " << (int)this->tree[treeIndex].internalNode.leftIndex << '\n';
-                        cout << "right: " << (int)this->tree[treeIndex].internalNode.rightIndex << '\n';
-                        cout << "=======\n";
                     }
                     else
                     {
-                        cout << "no ultimo else - segundo - valor do bit lido é 0 - " << byteReaded[byteIndex] << '\n';
+
                         treeIndex = (int)this->tree[treeIndex].internalNode.leftIndex;
-                        cout << "Tree index recebeu == " << treeIndex << '\n';
-                        cout << "O treeNode a ser recebido ==== \n";
-                        cout << "======\n";
-                        cout << "left: " << (int)this->tree[treeIndex].internalNode.leftIndex << '\n';
-                        cout << "right: " << (int)this->tree[treeIndex].internalNode.rightIndex << '\n';
-                        cout << "=======\n";
                     }
-                    cout << "O index da arvore recebe == " << treeIndex << '\n';
                     --byteIndex;
                 }
-                cout << "=====================\n";
             }
         }
         (*fileToWrite) << std::flush;
@@ -357,34 +323,15 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
         byteReaded = fileToRead->get();
         if (fileToRead->eof())
             break;
-        cout << "=== li o caractere: ==== " << (char)byteReaded << '\n';
         codeAndCodeLen charactereCode = (*table)[byteReaded];
         if (numberOfShifts < 8 && charactereCode.len <= (8 - numberOfShifts))
         {
-            cout << "=== já é pequeno - primeiro if = \n";
             byteToWrite <<= charactereCode.len;
             byteToWrite |= bitset<byteToWrite.size()>(charactereCode.code.to_ulong());
-            cout << "=== o byte depois do ou " << byteToWrite << '\n';
             numberOfShifts += charactereCode.len;
-            cout << "=== quantidade de shifts " << (int)numberOfShifts << '\n';
         }
         else if (numberOfShifts < 8 && charactereCode.len > (8 - numberOfShifts))
         {
-            // codigo antigo
-            /* int numberOfShiftsToDoInCode = charactereCode.len - (8 - numberOfShifts);
-            bitset<32> copyOfByteReaded = (charactereCode.code >> numberOfShiftsToDoInCode);
-            byteToWrite <<= (8 - numberOfShifts);
-            byteToWrite |= copyOfByteReaded;
-
-            (*fileToWrite) << (unsigned char)byteToWrite.to_ullong();
-            copyOfByteReaded <<= numberOfShiftsToDoInCode;
-            copyOfByteReaded.flip();
-            charactereCode.code &= copyOfByteReaded;
-            byteToWrite.reset();
-            byteToWrite |= charactereCode.code;
-
-            numberOfShifts = numberOfShiftsToDoInCode; */
-            cout << "===  é maior - tamanho é " << charactereCode.len << "e o num " << (8 - numberOfShifts) << '\n';
             bitset<32> copyOfByteReaded;
             int shiftsTodo = 0;
 
@@ -392,39 +339,25 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
             {
                 if (charactereCode.len <= (8 - numberOfShifts))
                 {
-                    cout << "=== agora ficou menor\n";
                     byteToWrite <<= charactereCode.len;
-                    cout << "=== apos o shift do taman " << charactereCode.len << '\n';
-                    cout << "=== " << byteToWrite << '\n';
-                    cout << "byte a ser escrito1: " << byteToWrite << '\n';
                     byteToWrite |= bitset<byteToWrite.size()>(charactereCode.code.to_ulong());
-                    cout << "=== apos o ou no pri " << byteToWrite << '\n';
                     numberOfShifts += charactereCode.len;
-                    cout << "number of shif " << numberOfShifts << '\n';
                     charactereCode.len = 0;
                 }
                 else
                 {
-                    cout << "=== entrei no else do segundo while \n";
-                    shiftsTodo = (charactereCode.len - (8 - numberOfShifts));
-                    cout << "=== vou dar um shift de " << shiftsTodo << '\n';
-                    copyOfByteReaded = charactereCode.code >> shiftsTodo;
-                    cout << "=== o resul do shift é " << copyOfByteReaded << '\n';
-                    charactereCode.len = shiftsTodo;
-                    cout << "=== ainda soubrou pra colocar " << charactereCode.len << '\n';
-                    cout << "=== antes do shift com a copia: " << byteToWrite << '\n';
-                    byteToWrite <<= (8 - numberOfShifts);
-                    // doing here
-                    cout << "=== antes do ou com a copia: " << byteToWrite << '\n';
-                    byteToWrite |= bitset<byteToWrite.size()>(copyOfByteReaded.to_ulong());
 
-                    cout << "=== depois do ou com a copia: " << byteToWrite << '\n';
+                    shiftsTodo = (charactereCode.len - (8 - numberOfShifts));
+                    copyOfByteReaded = charactereCode.code >> shiftsTodo;
+                    charactereCode.len = shiftsTodo;
+                    byteToWrite <<= (8 - numberOfShifts);
+                    byteToWrite |= bitset<byteToWrite.size()>(copyOfByteReaded.to_ulong());
                     (*fileToWrite) << (unsigned char)byteToWrite.to_ullong();
                     copyOfByteReaded <<= shiftsTodo;
                     copyOfByteReaded.flip();
                     charactereCode.code &= copyOfByteReaded;
                     byteToWrite.reset();
-                    // numberOfShifts = 0;
+
                     numberOfShifts = 0;
                 }
             }
@@ -432,207 +365,173 @@ void writeCompiledCodes(unordered_map<unsigned char, codeAndCodeLen> *table, ifs
 
         if (numberOfShifts == 8)
         {
-            cout << "shif = 8 byte a ser escrito " << byteToWrite << '\n';
             (*fileToWrite) << (unsigned char)byteToWrite.to_ullong();
             numberOfShifts = 0;
             byteToWrite.reset();
         }
     }
-
     if (numberOfShifts > 0 && numberOfShifts < 8)
     {
-        cout << "\n sai do while antes sobrando bit: " << (int)numberOfShifts << '\n';
         byteToWrite <<= (8 - numberOfShifts);
         (*fileToWrite) << (unsigned char)byteToWrite.to_ullong();
     }
-
-    cout << '\n';
 
     (*fileToWrite) << std::flush;
 }
 
 //===================================================================
 
-int main()
+int main(int, char *argv[])
 {
 
-    string fileName = "6.bmp";
+    string fileName = "1_6_chars.txt";
     int *occurenceVector = new int[256];
     uint16_t N_numberOfLeafs = 0;
     int numberOfBytes = 0;
+    string option(argv[1]);
+    string inputFileName(argv[2]);
+    string outputFileName(argv[3]);
 
-    ifstream *file = new ifstream(fileName.data(), std::ios_base::in | std::ios_base::binary);
-    ofstream *outputFile = new ofstream("said6.bmp", std::ios_base::out | std::ios_base::binary);
-
-    unsigned char byte;
-    while (true)
+    if (option == "-c")
     {
-        byte = file->get();
-        if (file->eof())
+        ifstream *file = new ifstream(inputFileName.data(), std::ios_base::in | std::ios_base::binary);
+        ofstream *outputFile = new ofstream(outputFileName.data(), std::ios_base::out | std::ios_base::binary);
+
+        unsigned char byte;
+        while (true)
         {
-            break;
+            byte = file->get();
+            if (file->eof())
+            {
+                break;
+            }
+            if (occurenceVector[(int)byte] <= 0)
+            {
+                N_numberOfLeafs += 1;
+            }
+            occurenceVector[(int)byte] += 1;
+            numberOfBytes += 1;
         }
-        if (occurenceVector[(int)byte] <= 0)
-        {
-            N_numberOfLeafs += 1;
-        }
-        occurenceVector[(int)byte] += 1;
-        numberOfBytes += 1;
-    }
 
-    if (N_numberOfLeafs < 1)
-    {
-        cout << "aaaaa\n";
-        return 0;
-    }
-    if (N_numberOfLeafs < 2)
-    {
-        //(*outputFile) << (unsigned char)N_numberOfLeafs;
+        if (N_numberOfLeafs < 1)
+        {
+            cout << "Arquivo compilado escrito.\n";
+            return 0;
+        }
+        if (N_numberOfLeafs < 2)
+        {
+            cout << "Escrevendo o arquivo compilado.\n";
+            (*outputFile).write((char *)&N_numberOfLeafs, sizeof(uint16_t));
+            (*outputFile) << std::flush;
+            (*outputFile).write((char *)&numberOfBytes, sizeof(numberOfBytes));
+            int i = 0;
+            while (occurenceVector[i] == 0)
+                ++i;
+            (*outputFile) << (unsigned char)i;
+            (*outputFile) << std::flush;
+            cout << "Arquivo escrito.\n";
+            return 0;
+        }
+
+        occurrenceNode *heap = new occurrenceNode[N_numberOfLeafs];
+
+        occurrenceNode *treePointer = new occurrenceNode[2 * N_numberOfLeafs - 1];
+
+        Heap occurrenceHeap = Heap(heap);
+        HuffmanTree tree = HuffmanTree(treePointer, N_numberOfLeafs);
+
+        for (int *i = occurenceVector; i != (occurenceVector + 256); ++i)
+        {
+            if (*(i) > 0)
+            {
+
+                occurrenceNode treeNode;
+                treeNode.character = (char)(i - occurenceVector);
+                int indexInserted = tree.insertAnode(treeNode);
+
+                occurrenceNode newNode;
+                newNode.occurrenceStruct.treeIndex = indexInserted;
+                newNode.occurrenceStruct.occurrence = *(i);
+                occurrenceHeap.insertAnode(newNode);
+            }
+        }
+        cout << "Construindo árvore de huffman...\n";
+        while (occurrenceHeap.numberOfele() > 1)
+        {
+            occurrenceNode nodeOne = occurrenceHeap.removeMinimun();
+            occurrenceNode nodeTwo = occurrenceHeap.removeMinimun();
+
+            occurrenceNode newTreeNode;
+            newTreeNode.internalNode.leftIndex = nodeOne.occurrenceStruct.treeIndex;
+            newTreeNode.internalNode.rightIndex = nodeTwo.occurrenceStruct.treeIndex;
+
+            int indexInsertedOnTree = tree.insertAnode(newTreeNode);
+
+            occurrenceNode newHeapNode;
+            newHeapNode.occurrenceStruct.occurrence = nodeOne.occurrenceStruct.occurrence + nodeTwo.occurrenceStruct.occurrence;
+            newHeapNode.occurrenceStruct.treeIndex = indexInsertedOnTree;
+            occurrenceHeap.insertAnode(newHeapNode);
+        }
+
+        unordered_map<unsigned char, codeAndCodeLen> *codeTable = new unordered_map<unsigned char, codeAndCodeLen>();
+        cout << "Criando tabela de códigos....\n";
+        tree.populateSomeTableWithCodes(codeTable);
+
+        file->clear();
+        file->seekg(0);
+
         (*outputFile).write((char *)&N_numberOfLeafs, sizeof(uint16_t));
-        (*outputFile) << std::flush;
-        //(*outputFile) << (unsigned char)numberOfBytes;
+        cout << "Escrevendo a árvore no arquivo...\n";
+        tree.writeTreInAfile(outputFile);
+
         (*outputFile).write((char *)&numberOfBytes, sizeof(numberOfBytes));
-        int i = 0;
-        while (occurenceVector[i] == 0)
-            ++i;
-        (*outputFile) << (unsigned char)i;
-        (*outputFile) << std::flush;
-        return 0;
+        cout << "Escrevendo os códigos no arquivo de saída...\n";
+        writeCompiledCodes(codeTable, file, outputFile);
+        cout << "Arquivo escrito...\n";
+        (*outputFile).close();
     }
-
-    occurrenceNode *heap = new occurrenceNode[N_numberOfLeafs];
-
-    occurrenceNode *treePointer = new occurrenceNode[2 * N_numberOfLeafs - 1];
-
-    Heap occurrenceHeap = Heap(heap);
-    HuffmanTree tree = HuffmanTree(treePointer, N_numberOfLeafs);
-
-    for (int *i = occurenceVector; i != (occurenceVector + 256); ++i)
+    else if (option == "-d")
     {
-        if (*(i) > 0)
+        ifstream *saida = new ifstream(inputFileName.data(), std::ios_base::in | std::ios_base::binary);
+        ofstream *saidaDescomp = new ofstream(outputFileName.data(), std::ios_base::out | std::ios_base::binary);
+        int numberOfDiferentElements = 0;
+        saida->read(reinterpret_cast<char *>(&numberOfDiferentElements), sizeof(uint16_t));
+
+        if (saida->eof())
+            return 0;
+
+        if (numberOfDiferentElements < 2)
         {
 
-            occurrenceNode treeNode;
-            treeNode.character = (char)(i - occurenceVector);
-            int indexInserted = tree.insertAnode(treeNode);
+            int numberOfBytesToBeWrite = 0;
+            saida->read(reinterpret_cast<char *>(&numberOfBytesToBeWrite), sizeof(int));
 
-            occurrenceNode newNode;
-            newNode.occurrenceStruct.treeIndex = indexInserted;
-            newNode.occurrenceStruct.occurrence = *(i);
-            occurrenceHeap.insertAnode(newNode);
+            unsigned char charToBeWrite = (char)saida->get();
+
+            while (numberOfBytesToBeWrite > 0)
+            {
+                (*saidaDescomp) << charToBeWrite;
+                --numberOfBytesToBeWrite;
+            }
+            (*saidaDescomp) << std::flush;
+            return 0;
         }
+
+        occurrenceNode *pointerToTheTree = new occurrenceNode[2 * numberOfDiferentElements - 1];
+        cout << "Lendo a árvore do arquivo....\n";
+        HuffmanTree treeFromTheFile = HuffmanTree(pointerToTheTree, numberOfDiferentElements);
+
+        treeFromTheFile.populateTreeFromAFile(saida);
+
+        saida->read(reinterpret_cast<char *>(&numberOfBytes), sizeof(int));
+        cout << "Escrevendo arquivo descompactado....\n";
+        treeFromTheFile.writeUnzzipedFileByTheTree(saidaDescomp, saida, numberOfBytes);
+        cout << "Arquivo escrito...\n";
     }
-
-    while (occurrenceHeap.numberOfele() > 1)
+    else
     {
-        occurrenceNode nodeOne = occurrenceHeap.removeMinimun();
-        occurrenceNode nodeTwo = occurrenceHeap.removeMinimun();
-
-        occurrenceNode newTreeNode;
-        newTreeNode.internalNode.leftIndex = nodeOne.occurrenceStruct.treeIndex;
-        newTreeNode.internalNode.rightIndex = nodeTwo.occurrenceStruct.treeIndex;
-
-        int indexInsertedOnTree = tree.insertAnode(newTreeNode);
-
-        occurrenceNode newHeapNode;
-        newHeapNode.occurrenceStruct.occurrence = nodeOne.occurrenceStruct.occurrence + nodeTwo.occurrenceStruct.occurrence;
-        newHeapNode.occurrenceStruct.treeIndex = indexInsertedOnTree;
-        occurrenceHeap.insertAnode(newHeapNode);
+        cout << "entrada inválida - Opção não encontrada.\n";
     }
-
-    unordered_map<unsigned char, codeAndCodeLen> *codeTable = new unordered_map<unsigned char, codeAndCodeLen>();
-
-    tree.populateSomeTableWithCodes(codeTable);
-
-    // tree.printTreeAsVector();
-
-    for (auto element : (*codeTable))
-    {
-        cout << element.first << ": " << element.second.code << " - " << element.second.len << '\n';
-    }
-
-    file->clear();
-    file->seekg(0);
-
-    //(*outputFile) << (unsigned char)N_numberOfLeafs;
-    cout << "numero de folh" << N_numberOfLeafs << '\n';
-    (*outputFile).write((char *)&N_numberOfLeafs, sizeof(uint16_t));
-
-    cout << "numberof lead: " << (int)N_numberOfLeafs << '\n';
-
-    tree.writeTreInAfile(outputFile);
-
-    //(*outputFile) << std::flush;
-    //(*outputFile) << (unsigned char)numberOfBytes;
-    (*outputFile).write((char *)&numberOfBytes, sizeof(numberOfBytes));
-
-    cout << "Number of bytes: " << numberOfBytes << '\n';
-
-    writeCompiledCodes(codeTable, file, outputFile);
-
-    (*outputFile).close();
-
-    return 0;
-
-    /* ==================================================================================== */
-    /* ==================================================================================== */
-    /* ==================================================================================== */
-
-    ifstream *saida = new ifstream("said5.pdf", std::ios_base::in | std::ios_base::binary);
-    ofstream *saidaDescomp = new ofstream("descomp5.pdf", std::ios_base::out | std::ios_base::binary);
-
-    // int numberOfDiferentElements = (int)saida->get();
-    int numberOfDiferentElements = 0;
-    saida->read(reinterpret_cast<char *>(&numberOfDiferentElements), sizeof(uint16_t));
-
-    if (saida->eof())
-        return 0;
-
-    if (numberOfDiferentElements < 2)
-    {
-        cout << "NUmero de elementos diferentes " << numberOfDiferentElements << '\n';
-        int numberOfBytesToBeWrite = 0;
-        saida->read(reinterpret_cast<char *>(&numberOfBytesToBeWrite), sizeof(int));
-        cout << "NUmer de bytes a ser escrito " << numberOfBytesToBeWrite << '\n';
-        unsigned char charToBeWrite = (char)saida->get();
-        cout << "Char a ser escrito " << charToBeWrite << '\n';
-        while (numberOfBytesToBeWrite > 0)
-        {
-            (*saidaDescomp) << charToBeWrite;
-            --numberOfBytesToBeWrite;
-        }
-        (*saidaDescomp) << std::flush;
-        return 0;
-    }
-
-    cout << "primeiro byte: " << numberOfDiferentElements << '\n';
-
-    occurrenceNode *pointerToTheTree = new occurrenceNode[2 * numberOfDiferentElements - 1];
-
-    HuffmanTree treeFromTheFile = HuffmanTree(pointerToTheTree, numberOfDiferentElements);
-
-    treeFromTheFile.populateTreeFromAFile(saida);
-
-    treeFromTheFile.runThroughoutTheTree(2 * numberOfDiferentElements - 2);
-
-    treeFromTheFile.printTreeAsVector();
-
-    cout << "=====\n";
-
-    // numberOfBytes = (int)saida->get();
-    saida->read(reinterpret_cast<char *>(&numberOfBytes), sizeof(int));
-
-    cout
-        << "O numero de bytes é: " << numberOfBytes << '\n';
-
-    treeFromTheFile.writeUnzzipedFileByTheTree(saidaDescomp, saida, numberOfBytes);
-
-    /* while (true)
-    {
-        byte = file->get();
-        if (file->eof())
-            break;
-    } */
 
     return 0;
 }
