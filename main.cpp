@@ -9,13 +9,13 @@ using namespace std;
 struct treeNode
 {
     int occurrence;
-    uint8_t treeIndex;
+    uint16_t treeIndex;
 };
 
 struct internalNodeTree
 {
-    uint8_t leftIndex;
-    uint8_t rightIndex;
+    uint16_t leftIndex;
+    uint16_t rightIndex;
 };
 
 union occurrenceNode
@@ -185,6 +185,7 @@ public:
 
     void printCodes()
     {
+        cout << "o indice de comec " << this->insertIndex - 1 << "\n";
         this->runThroughoutTheTree(this->insertIndex - 1);
     }
 
@@ -212,8 +213,9 @@ public:
             cout << "Esque " << i->internalNode.leftIndex << '\n';
             cout << "Dire  " << i->internalNode.rightIndex << '\n';
             cout << "==============\n"; */
-            (*fileToWrite) << (unsigned char)i->internalNode.leftIndex << (unsigned char)i->internalNode.rightIndex;
-
+            //(*fileToWrite) << (unsigned char)i->internalNode.leftIndex << (unsigned char)i->internalNode.rightIndex;
+            (*fileToWrite).write((char *)&(i->internalNode.leftIndex), sizeof(uint16_t));
+            (*fileToWrite).write((char *)&(i->internalNode.rightIndex), sizeof(uint16_t));
             cout << bitset<8>(i->internalNode.leftIndex) << bitset<8>(i->internalNode.rightIndex);
             ++i;
         }
@@ -227,6 +229,7 @@ public:
     {
         uint8_t byteToPutInTree;
         int i = 0;
+        uint16_t indexes = 0;
 
         cout << "O numero de elemenetos é : " << this->numberOfElements << '\n';
         while (i < this->numberOfElements)
@@ -246,13 +249,15 @@ public:
         {
 
             occurrenceNode newNode;
-            byteToPutInTree = fileToRead->get();
-
-            newNode.internalNode.leftIndex = byteToPutInTree;
-            // cout << "EU LLI O INDEXX: " << (int)newNode.internalNode.leftIndex << '\n';
-            byteToPutInTree = fileToRead->get();
-            newNode.internalNode.rightIndex = byteToPutInTree;
-            // cout << "EU LLI O INDEXX: " << (int)newNode.internalNode.rightIndex << '\n';
+            // byteToPutInTree = fileToRead->get();
+            // leftIndex
+            fileToRead->read(reinterpret_cast<char *>(&indexes), sizeof(uint16_t));
+            newNode.internalNode.leftIndex = indexes;
+            cout << "EU LLI O INDEXX esquerd: " << (int)newNode.internalNode.leftIndex << '\n';
+            // byteToPutInTree = fileToRead->get();
+            fileToRead->read(reinterpret_cast<char *>(&indexes), sizeof(uint16_t));
+            newNode.internalNode.rightIndex = indexes;
+            cout << "EU LLI O INDEXX direit : " << (int)newNode.internalNode.rightIndex << '\n';
 
             this->insertAnode(newNode);
             ++i;
@@ -510,8 +515,6 @@ int main()
             occurrenceNode treeNode;
             treeNode.character = (char)(i - occurenceVector);
             int indexInserted = tree.insertAnode(treeNode);
-            cout << "o caracte foi " << treeNode.character << '\n';
-            cout << "de binario " << bitset<8>(treeNode.character) << '\n';
 
             occurrenceNode newNode;
             newNode.occurrenceStruct.treeIndex = indexInserted;
@@ -537,9 +540,6 @@ int main()
         occurrenceHeap.insertAnode(newHeapNode);
     }
 
-    tree.printCodes();
-    return 0;
-
     unordered_map<unsigned char, codeAndCodeLen> *codeTable = new unordered_map<unsigned char, codeAndCodeLen>();
 
     tree.populateSomeTableWithCodes(codeTable);
@@ -550,10 +550,6 @@ int main()
     {
         cout << element.first << ": " << element.second.code << " - " << element.second.len << '\n';
     }
-
-    // tree.printCodes();
-
-    return 0;
 
     file->clear();
     file->seekg(0);
@@ -582,8 +578,8 @@ int main()
     /* ==================================================================================== */
     /* ==================================================================================== */
 
-    ifstream *saida = new ifstream("said.bmp", std::ios_base::in | std::ios_base::binary);
-    ofstream *saidaDescomp = new ofstream("descomp6.bmp", std::ios_base::out | std::ios_base::binary);
+    ifstream *saida = new ifstream("said5.pdf", std::ios_base::in | std::ios_base::binary);
+    ofstream *saidaDescomp = new ofstream("descomp5.pdf", std::ios_base::out | std::ios_base::binary);
 
     // int numberOfDiferentElements = (int)saida->get();
     int numberOfDiferentElements = 0;
